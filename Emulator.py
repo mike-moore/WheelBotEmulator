@@ -1,34 +1,26 @@
-import os, pty, serial, time
-
+import time
+from SerialEmulator import SerialEmulator
 
 class Emulator(object):
 	def __init__(self):
-	    master, slave = pty.openpty()
-	    masterPortName = os.ttyname(master)
-	    slavePortName = os.ttyname(slave)
-	    print 'MASTER: ' + str(masterPortName)
-	    print 'SLAVE: ' + str(slavePortName)
-	    self.serialPort = serial.Serial(port=masterPortName, baudrate=115200, rtscts=True, dsrdtr=True)
-	    if self.serialPort.isOpen():
-  	    	print 'WheelBot emulator running on port : ' + masterPortName
+		self.serialEmulator = SerialEmulator()
+		if self.serialEmulator.serial.isOpen():
+			print 'WheelBot emulator running on port : ' + self.serialEmulator.device_port
 
 	def listen(self):
 		while True:
-			print 'Waiting for data...'
-			while self.serialPort.inWaiting() > 0:
-				print 'Received message'
-				out += self.serialPort.read(1)
-			time.sleep(0.5)
-			self.sendWheelBotTlm()
+			cmds = self.serialEmulator.read()
+			if cmds:
+			    print 'Cmds received '
+			    print cmds
+			    self.sendWheelBotTlm()
 
 	def sendWheelBotTlm(self):
-	    self.serialPort.write('Hello world\n')
-
+	    self.serialEmulator.write('distance, heading, waypt_reached\n')
 
 def main():
 	emulator = Emulator()
 	emulator.listen()
-
 
 if __name__ == "__main__":
     main()
