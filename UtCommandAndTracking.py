@@ -4,6 +4,8 @@ import unittest
 from time import sleep
 # Use the WheelBot Emulator for this test
 from Emulator import Emulator
+# Use the WheelBot Simulator for this test
+from Simulator import Simulator
 # Need a serial communication component for this test
 from SerialCommunication import SerialCommunication
 # Import the module under test
@@ -25,6 +27,7 @@ class UtCommandAndTracking(unittest.TestCase):
 
     def setUp(self):
         self.wbEmulator = Emulator()
+        self.wbEmulator.setSimulator(Simulator())
         self.wbEmulator.run()
         self.serialComm = SerialCommunication("./ttyclient")
         self.testArticle = CommandAndTracking()

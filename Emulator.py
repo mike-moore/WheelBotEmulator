@@ -1,16 +1,17 @@
 import time, threading
 from SerialEmulator import SerialEmulator
+from Simulator import Simulator
 from WayPoint import WayPoint
 import wb_comm_if_pb2
 
 class Emulator(object):
 	def __init__(self):
 		self.serialEmulator = SerialEmulator()
+		self.wbSimulator = Simulator()
 		self.listenThread = threading.Thread(target=self.listen) 
 		self.listenThread.daemon = True
 		self.runThread = False
 		self.activeWayPoint = None
-		self.wbTelemetry = wb_comm_if_pb2.WheelBotTelemetry()
 		if self.serialEmulator.serial.isOpen():
 			print 'WheelBot emulator running on port : ' + self.serialEmulator.device_port
 			print 'WheelBot emulator clients should connect through port : ' + self.serialEmulator.client_port
@@ -21,6 +22,9 @@ class Emulator(object):
 
 	def stop(self):
 		self.runThread = False
+
+	def setSimulator(self, wbSimulator):
+		self.wbSimulator = wbSimulator
 
 	def listen(self):
 		while self.runThread:
@@ -33,24 +37,20 @@ class Emulator(object):
 	def processCmdRcvd(self, cmd):
 		print "Way-Point command received ... "
 		self.activeWayPoint = self.unpackRawCmd(cmd)
+		self.wbSimulator.addWayPoint(self.activeWayPoint)
 		self.activeWayPoint.displayWayPoint()
 
 	def unpackRawCmd(self, raw_cmd):
-		# Create a proto-buf WayPoint command based on the one
-		# passed in to this function.
 		way_point_cmd = wb_comm_if_pb2.WayPoint()
 		way_point_cmd.ParseFromString(raw_cmd)
 		return WayPoint(way_point_cmd.Distance,way_point_cmd.Heading)
 
 	def sendWheelBotTlm(self):
-		self.packTelemetry()
-		self.serialEmulator.write(self.wbTelemetry.SerializeToString())
+		self.serialEmulator.write(self.packTelemetry())
 
 	def packTelemetry(self):
-		self.wbTelemetry.ObstacleDistance = 2.5
-		self.wbTelemetry.Heading = 35.0
-		self.wbTelemetry.DriveDistanceEstimate = 1.5
-		self.wbTelemetry.WayPointCmdReached = True
+		return self.wbSimulator.getSimData().SerializeToString()
+
 
 
 # Used if you want to run the emulator as a main program.
