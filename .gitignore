@@ -1,2 +1,8 @@
 *.o
 *.pyc
+ttyclient
+ttydevice
+proto_example/add_person_python
+proto_example/addressbook_pb2.py
+proto_example/list_people_python
+proto_example/protoc_middleman

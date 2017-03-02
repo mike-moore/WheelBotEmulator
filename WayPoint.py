@@ -8,3 +8,7 @@ class WayPoint(object):
 
 	def activate(self):
 		self.Active = True
+
+	def displayWayPoint(self):
+		print "Desired distance : " + str(self.Distance) + " ft "
+		print "Desired heading : " + str(self.Heading) + " degrees "

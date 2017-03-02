@@ -1,0 +1,14 @@
+
+message WayPoint {
+  required double Distance = 1;
+  required double Heading = 2;
+}
+
+message WheelBotTelemetry {
+  required double ObstacleDistance = 1;
+  required double Heading = 2;
+  required double DriveDistanceEstimate = 3;
+  optional bool WayPointCmdAccepted = 4;
+  optional bool WayPointCmdRejected = 5;
+  optional bool WayPointCmdReached = 6;
+}
