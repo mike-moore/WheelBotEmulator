@@ -1,25 +1,42 @@
 import wb_comm_if_pb2
-import time
+import time, math, threading
 
 class Simulator(object):
 	def __init__(self):
 		self.wayPointList = []
-		self.rotationalVel = 0.1
-		self.translationalVel = 0.1
+		self.ActiveWayPoint = None
+		self.rotationalVel = 5.0 # deg/s
+		self.translationalVel = 0.25 # m/s
 		self.heading = 0.0
 		self.distanceTraveled = 0.0
 		self.positionX = 0.0
 		self.positionY = 0.0
 		self.timeStep = 0.1
-		self.headingTolerance = 0.1
-		self.distanceTolerance = 0.1
+		self.headingTolerance = 0.01
+		self.distanceTolerance = 0.01
+		self.simulationThread = threading.Thread(target=self.simThread) 
+		self.simulationThread.daemon = True
+		self.active = False
 		return
 
-	def run():
-		if self.wayPointList:
-			activeWayPoint = self.wayPointList.pop()
-			rotateToWayPoint(activeWayPoint)
-			translateToWayPoint(activeWayPoint)
+	def run(self):
+		self.active = True
+		self.simulationThread.start()
+
+	def stop(self):
+		self.active = False
+
+	def setTimeStep(self, timeStep):
+		self.timeStep = timeStep
+
+	def simThread(self):
+		while self.active:
+			if self.wayPointList:
+				self.ActiveWayPoint = self.wayPointList.pop(0)
+				self.ActiveWayPoint.Active = True
+				self.rotateToWayPoint(self.ActiveWayPoint)
+				self.translateToWayPoint(self.ActiveWayPoint)
+				self.ActiveWayPoint.Reached = True
 
 	def rotateToWayPoint(self, way_point):
 		errorHeading = way_point.Heading - self.heading
@@ -32,6 +49,7 @@ class Simulator(object):
 			time.sleep(self.timeStep)
 
 	def translateToWayPoint(self, way_point):
+		self.distanceTraveled = 0.0
 		errorDistance = way_point.Distance
 		while abs(errorDistance) > self.distanceTolerance:
 			if errorDistance > 0:
@@ -40,8 +58,14 @@ class Simulator(object):
 				self.distanceTraveled -= self.translationalVel * self.timeStep
 			errorDistance = way_point.Distance - self.distanceTraveled
 			time.sleep(self.timeStep)
+		self.positionX += self.distanceTraveled*math.sin(math.radians(self.heading))
+		self.positionY += self.distanceTraveled*math.cos(math.radians(self.heading))
+
 
 	def addWayPoint(self, way_point):
+		if not self.active:
+			print "Simulation is not active. Use Simulation.run() routine to start up the simulation."
+			return
 		self.wayPointList.append(way_point)
 
 	def getSimData(self):
@@ -49,7 +73,7 @@ class Simulator(object):
 		wb_data.ObstacleDistance = 2.5
 		wb_data.Heading = self.heading
 		wb_data.DriveDistanceEstimate = self.distanceTraveled
-		wb_data.WayPointCmdReached = True
+		wb_data.WayPointCmdReached = self.ActiveWayPoint.Reached
 		return wb_data
 
 

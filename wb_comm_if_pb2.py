@@ -13,7 +13,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='wb_comm_if.proto',
   package='',
-  serialized_pb='\n\x10wb_comm_if.proto\"-\n\x08WayPoint\x12\x10\n\x08\x44istance\x18\x01 \x02(\x01\x12\x0f\n\x07Heading\x18\x02 \x02(\x01\"\xb3\x01\n\x11WheelBotTelemetry\x12\x18\n\x10ObstacleDistance\x18\x01 \x02(\x01\x12\x0f\n\x07Heading\x18\x02 \x02(\x01\x12\x1d\n\x15\x44riveDistanceEstimate\x18\x03 \x02(\x01\x12\x1b\n\x13WayPointCmdAccepted\x18\x04 \x01(\x08\x12\x1b\n\x13WayPointCmdRejected\x18\x05 \x01(\x08\x12\x1a\n\x12WayPointCmdReached\x18\x06 \x01(\x08')
+  serialized_pb='\n\x10wb_comm_if.proto\"-\n\x08WayPoint\x12\x10\n\x08\x44istance\x18\x01 \x02(\x01\x12\x0f\n\x07Heading\x18\x02 \x02(\x01\"y\n\x11WheelBotTelemetry\x12\x18\n\x10ObstacleDistance\x18\x01 \x02(\x01\x12\x0f\n\x07Heading\x18\x02 \x02(\x01\x12\x1d\n\x15\x44riveDistanceEstimate\x18\x03 \x02(\x01\x12\x1a\n\x12WayPointCmdReached\x18\x04 \x01(\x08')
 
 
 
@@ -82,22 +82,8 @@ _WHEELBOTTELEMETRY = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='WayPointCmdAccepted', full_name='WheelBotTelemetry.WayPointCmdAccepted', index=3,
+      name='WayPointCmdReached', full_name='WheelBotTelemetry.WayPointCmdReached', index=3,
       number=4, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='WayPointCmdRejected', full_name='WheelBotTelemetry.WayPointCmdRejected', index=4,
-      number=5, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='WayPointCmdReached', full_name='WheelBotTelemetry.WayPointCmdReached', index=5,
-      number=6, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -111,8 +97,8 @@ _WHEELBOTTELEMETRY = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=68,
-  serialized_end=247,
+  serialized_start=67,
+  serialized_end=188,
 )
 
 DESCRIPTOR.message_types_by_name['WayPoint'] = _WAYPOINT
