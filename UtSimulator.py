@@ -8,22 +8,20 @@ from WayPoint import WayPoint
 
 # Define a list of way-points for the purpose of testing
 test_route_1 = [WayPoint("WayPoint A", 3.0, 90.0),
-                WayPoint("WayPoint B", 1.0, 0.0),
-                WayPoint("WayPoint C", 2.0, 0.0),
-                WayPoint("WayPoint D", 1.0, 90.0),
-                WayPoint("WayPoint E", 1.0, 0.0),
-                WayPoint("WayPoint F", 1.0, 0.0),
-                WayPoint("WayPoint G", 0.0, 45.0),
-                WayPoint("WayPoint H", 0.0, 45.0),
-                WayPoint("WayPoint I", 3.0, 0.0)]
+                WayPoint("WayPoint B", 1.0, 90.0),
+                WayPoint("WayPoint C", 2.0, 90.0),
+                WayPoint("WayPoint D", 1.0, 180.0),
+                WayPoint("WayPoint E", 1.0, 180.0),
+                WayPoint("WayPoint F", 1.0, 180.0),
+                WayPoint("WayPoint G", 0.0, 225.0),
+                WayPoint("WayPoint H", 0.0, 270.0),
+                WayPoint("WayPoint I", 3.0, 270.0)]
 
 class UtSimulator(unittest.TestCase):
 
     def setUp(self):
         self.simTimeStep = 0.1
         self.testArticle = Simulator()
-        self.testArticle.rotationalVel = 20.0
-        self.testArticle.translationalVel = 3.0
         self.testArticle.setTimeStep(self.simTimeStep)
         self.testArticle.run()
 
@@ -42,45 +40,59 @@ class UtSimulator(unittest.TestCase):
             time.sleep(self.simTimeStep)
 
     def test_addWayPoint(self):
+        # Command WayPoint A
         self.commandWayPointHelper(test_route_1.pop(0))
-        print self.assertAlmostEqual(self.testArticle.positionX, 3.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.positionY, 0.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.heading, 90.0, delta=self.testArticle.headingTolerance)
+        print self.assertAlmostEqual(self.testArticle.positionX, 3.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.positionY, 0.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.heading, 90.0, delta=self.testArticle.rotationalVel)
 
+        # Command WayPoint B
         self.commandWayPointHelper(test_route_1.pop(0))
-        print self.assertAlmostEqual(self.testArticle.positionX, 4.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.positionY, 0.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.heading, 90.0, delta=self.testArticle.headingTolerance)
+        print self.assertAlmostEqual(self.testArticle.positionX, 4.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.positionY, 0.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.heading, 90.0, delta=self.testArticle.rotationalVel)
 
+        # Command WayPoint C
         self.commandWayPointHelper(test_route_1.pop(0))
-        print self.assertAlmostEqual(self.testArticle.positionX, 6.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.positionY, 0.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.heading, 90.0, delta=self.testArticle.headingTolerance)
+        print self.assertAlmostEqual(self.testArticle.positionX, 6.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.positionY, 0.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.heading, 90.0, delta=self.testArticle.rotationalVel)
 
+        # Command WayPoint D
         self.commandWayPointHelper(test_route_1.pop(0))
-        print self.assertAlmostEqual(self.testArticle.positionX, 6.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.positionY, -1.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.heading, 180.0, delta=self.testArticle.headingTolerance)
+        print self.assertAlmostEqual(self.testArticle.positionX, 6.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.positionY, -1.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.heading, 180.0, delta=self.testArticle.rotationalVel)
 
+        # Command WayPoint E
         self.commandWayPointHelper(test_route_1.pop(0))
-        print self.assertAlmostEqual(self.testArticle.positionX, 6.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.positionY, -2.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.heading, 180.0, delta=self.testArticle.headingTolerance)
+        print self.assertAlmostEqual(self.testArticle.positionX, 6.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.positionY, -2.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.heading, 180.0, delta=self.testArticle.rotationalVel)
 
+        # Command WayPoint F
         self.commandWayPointHelper(test_route_1.pop(0))
-        print self.assertAlmostEqual(self.testArticle.positionX, 6.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.positionY, -3.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.heading, 180.0, delta=self.testArticle.headingTolerance)
+        print self.assertAlmostEqual(self.testArticle.positionX, 6.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.positionY, -3.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.heading, 180.0, delta=self.testArticle.rotationalVel)
 
+        # Command WayPoint G
         self.commandWayPointHelper(test_route_1.pop(0))
-        print self.assertAlmostEqual(self.testArticle.positionX, 6.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.positionY, -3.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.heading, 225.0, delta=self.testArticle.headingTolerance)
+        print self.assertAlmostEqual(self.testArticle.positionX, 6.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.positionY, -3.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.heading, 225.0, delta=self.testArticle.rotationalVel)
 
+        # Command WayPoint H
         self.commandWayPointHelper(test_route_1.pop(0))
-        print self.assertAlmostEqual(self.testArticle.positionX, 3.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.positionY, -3.0, delta=self.testArticle.distanceTolerance)
-        print self.assertAlmostEqual(self.testArticle.heading, 270.0, delta=self.testArticle.headingTolerance)
+        print self.assertAlmostEqual(self.testArticle.positionX, 6.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.positionY, -3.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.heading, 270.0, delta=self.testArticle.rotationalVel)
+
+        # Command WayPoint I
+        self.commandWayPointHelper(test_route_1.pop(0))
+        print self.assertAlmostEqual(self.testArticle.positionX, 3.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.positionY, -3.0, delta=self.testArticle.translationalVel)
+        print self.assertAlmostEqual(self.testArticle.heading, 270.0, delta=self.testArticle.rotationalVel)
 
 
 if __name__ == '__main__':

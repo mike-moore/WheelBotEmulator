@@ -13,20 +13,19 @@ from CommandAndTracking import CommandAndTracking
 from WayPoint import WayPoint
 
 # Define a list of way-points for the purpose of testing
-test_route_1 = [WayPoint("WayPoint A", 3.0, 90.0),
-                WayPoint("WayPoint B", 1.0, 0.0),
-                WayPoint("WayPoint C", 2.0, 0.0),
-                WayPoint("WayPoint D", 1.0, 90.0),
-                WayPoint("WayPoint E", 1.0, 0.0),
-                WayPoint("WayPoint F", 1.0, 0.0),
-                WayPoint("WayPoint G", 0.0, 45.0),
-                WayPoint("WayPoint H", 0.0, 45.0),
-                WayPoint("WayPoint I", 3.0, 0.0)]
+test_route_1 = [WayPoint(name="WayPoint A", distance=3.0, heading=90.0),
+                WayPoint(name="WayPoint B", distance=1.0, heading=0.0),
+                WayPoint(name="WayPoint C", distance=2.0, heading=0.0)]
 
 class UtCommandAndTracking(unittest.TestCase):
 
     def setUp(self):
+        self.simTimeStep = 0.025
+        self.wbSim = Simulator()
+        self.wbSim.setTimeStep(self.simTimeStep)
+        self.wbSim.run()
         self.wbEmulator = Emulator()
+        self.wbEmulator.setSimulator(self.wbSim)
         self.wbEmulator.run()
         self.serialComm = SerialCommunication("./ttyclient")
         self.testArticle = CommandAndTracking()

@@ -1,22 +1,23 @@
 import wb_comm_if_pb2
 import time, math, threading
+from WayPoint import WayPoint
 
 class Simulator(object):
 	def __init__(self):
 		self.wayPointList = []
-		self.ActiveWayPoint = None
-		self.rotationalVel = 5.0 # deg/s
+		self.ActiveWayPoint = WayPoint(name="NoName", distance=0.0, heading=0.0)
+		self.rotationalVel = 10.0 # deg/s
 		self.translationalVel = 0.25 # m/s
 		self.heading = 0.0
 		self.distanceTraveled = 0.0
 		self.positionX = 0.0
 		self.positionY = 0.0
 		self.timeStep = 0.1
-		self.headingTolerance = 0.01
-		self.distanceTolerance = 0.01
 		self.simulationThread = threading.Thread(target=self.simThread) 
 		self.simulationThread.daemon = True
 		self.active = False
+		self.lastPassPosError = False
+		self.lastPassNegError = False
 		return
 
 	def run(self):
@@ -40,7 +41,7 @@ class Simulator(object):
 
 	def rotateToWayPoint(self, way_point):
 		errorHeading = way_point.Heading - self.heading
-		while abs(errorHeading) > self.headingTolerance:
+		while abs(errorHeading) > self.rotationalVel*0.1:
 			if errorHeading > 0:
 				self.heading += self.rotationalVel * self.timeStep
 			else:
@@ -51,11 +52,23 @@ class Simulator(object):
 	def translateToWayPoint(self, way_point):
 		self.distanceTraveled = 0.0
 		errorDistance = way_point.Distance
-		while abs(errorDistance) > self.distanceTolerance:
+		while abs(errorDistance) > self.translationalVel*0.1:
 			if errorDistance > 0:
 				self.distanceTraveled += self.translationalVel * self.timeStep
+				self.lastPassPosError = True
+				# Check for oscillating error
+				if self.lastPassNegError:
+					self.lastPassPosError = False
+					self.lastPassNegError = False
+					return
 			else:
 				self.distanceTraveled -= self.translationalVel * self.timeStep
+				self.lastPassNegError = True
+				# Check for oscillating error
+				if self.lastPassPosError:
+					self.lastPassPosError = False
+					self.lastPassNegError = False
+					return
 			errorDistance = way_point.Distance - self.distanceTraveled
 			time.sleep(self.timeStep)
 		self.positionX += self.distanceTraveled*math.sin(math.radians(self.heading))

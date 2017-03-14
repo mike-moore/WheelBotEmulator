@@ -36,8 +36,6 @@ class SerialCommunication(object):
 		self.serialPort.write(cmd)
 
 	def commandWayPoint(self, way_point):
-		print 'Sending Way-Point command ... '
-		way_point.displayWayPoint()
 		# Create a proto-buf WayPoint command based on the one
 		# passed in to this function.
 		waypoint_msg_cmd = wb_comm_if_pb2.WayPoint()

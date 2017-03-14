@@ -35,15 +35,13 @@ class Emulator(object):
 			time.sleep(0.1)
 
 	def processCmdRcvd(self, cmd):
-		print "Way-Point command received ... "
 		self.activeWayPoint = self.unpackRawCmd(cmd)
 		self.wbSimulator.addWayPoint(self.activeWayPoint)
-		self.activeWayPoint.displayWayPoint()
 
 	def unpackRawCmd(self, raw_cmd):
 		way_point_cmd = wb_comm_if_pb2.WayPoint()
 		way_point_cmd.ParseFromString(raw_cmd)
-		return WayPoint(way_point_cmd.Distance,way_point_cmd.Heading)
+		return WayPoint(distance=way_point_cmd.Distance,heading=way_point_cmd.Heading)
 
 	def sendWheelBotTlm(self):
 		self.serialEmulator.write(self.packTelemetry())
