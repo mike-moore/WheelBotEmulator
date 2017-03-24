@@ -1,0 +1,5 @@
+log_frame_userjobs_main byte_order is little_endian
+log_frame_userjobs_main	double	     s	sys.exec.out.time
+log_frame_userjobs_main	long_long	     s	JOB_veh.vehicle.control.24.02(scheduled_0.100)
+log_frame_userjobs_main	long_long	     s	JOB_veh.vehicle.state_deriv.24.03(derivative)
+log_frame_userjobs_main	long_long	     s	JOB_veh.vehicle.state_integ.24.04(integration)
