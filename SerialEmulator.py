@@ -8,7 +8,7 @@ class SerialEmulator(object):
                 self.device_port, 'PTY,link=%s,raw,echo=0' % self.client_port]
         self.proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         time.sleep(1)
-        self.serial = serial.Serial(self.device_port, 9600, rtscts=True, dsrdtr=True)
+        self.serial = serial.Serial(port=self.device_port, baudrate=57600, rtscts=True, dsrdtr=True)
         self.err = ''
         self.out = ''
 

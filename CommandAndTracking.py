@@ -1,22 +1,19 @@
-import argparse, time
+import argparse, time, logging
 from SerialCommunication import SerialCommunication
-from WayPoint import WayPoint
+from CmdResponseDefinitions import *
+import comm_packet_pb2
 
 class CommandAndTracking(object):
 	def __init__(self):
 		self.SerialComm = None
 		self.WayPointList = []
-		self.ActiveWayPoint = WayPoint(name="NoName", distance=0.0, heading=0.0)
 		self.ConnectedToWheelBot = False
+		self.ActiveWayPointName = "None"
 
 	def connectToWheelBot(self, serial_comm):
 		self.SerialComm = serial_comm
-		self.SerialComm.run()
-		self.ConnectedToWheelBot = True
-
-	def disconnectFromWheelBot(self):
-		self.SerialComm.stop()
-		self.ConnectedToWheelBot = False
+		if self.SerialComm.serialPort.isOpen():
+			self.ConnectedToWheelBot = True
 
 	def isConnected(self):
 		if not self.ConnectedToWheelBot:
@@ -31,34 +28,33 @@ class CommandAndTracking(object):
 	def commandRoute(self):
 		if self.isConnected():
 			for way_point in self.WayPointList:
-				self.ActiveWayPoint = way_point
-				self.printActiveWayPoint()
-				self.reachWayPoint()
+				logging.info("Tracking WayPoint : ")
+				logging.info(way_point)
+				self.reachWayPoint(way_point)
+				time.sleep(5.0)
 
-	def getWheelBotData(self):
-		 if self.isConnected():
-			return self.SerialComm.getTelemetry()
+	def getActiveWayPoint(self):
+		cmd_packet = comm_packet_pb2.CommandPacket()
+		request_active_waypoint = cmd_packet.RoverCmds.add()
+		request_active_waypoint.Id = WP_GET_ACTIVE
+		response = self.SerialComm.commandArduino(cmd_packet)
+		if response:
+			logging.info("WheelBot's Active WayPoint is : ")
+			logging.info(response.ActiveWayPoint)
+			return response.ActiveWayPoint
+		else:
+			return "None"
 
-	def reachWayPoint(self):
-		while not self.ActiveWayPoint.Reached:
-			self.commandActiveWayPoint()
-			time.sleep(1.0)
-			wbData = self.getWheelBotData()
-			self.printWbData(wbData)
-			self.ActiveWayPoint.Reached = wbData.WayPointCmdReached
+	def reachWayPoint(self, way_point):
+		self.ActiveWayPointName = self.getActiveWayPoint()
+		if self.ActiveWayPointName != way_point.Name:
+			cmd_packet = comm_packet_pb2.CommandPacket()
+			cmd_packet.WayPointCmd.Heading = way_point.Heading
+			cmd_packet.WayPointCmd.Distance = way_point.Distance
+			cmd_packet.WayPointCmd.Name = way_point.Name
+			self.SerialComm.commandArduino(cmd_packet)
 
-	def commandActiveWayPoint(self):
-		self.SerialComm.commandWayPoint(self.ActiveWayPoint)
 
-	def printActiveWayPoint(self):
-		print "Commanding to new way-point : "
-		self.ActiveWayPoint.displayWayPoint()
-
-	def printWbData(self, wbData):
-		print "WheelBot Data Received ... "
-		print "Heading                   : " + str(wbData.Heading)
-		print "Drive Distance Estimate   : " + str(wbData.DriveDistanceEstimate)
-		print "WayPoint Command Reached  : " + str(wbData.WayPointCmdReached)
 		
 
 		

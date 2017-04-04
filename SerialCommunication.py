@@ -1,59 +1,72 @@
 import serial, time, threading
 from collections import deque
-import wb_comm_if_pb2
+import comm_packet_pb2
+import logging
+from google.protobuf.message import EncodeError
 
 class SerialCommunication(object):
-	def __init__(self, portName):
-		self.serialPort = serial.Serial(port=portName, baudrate=9600, rtscts=True,dsrdtr=True)
-		self.readTelemetryThread = threading.Thread(target=self.readTelemetry) 
-		self.readTelemetryThread.daemon = True
-		self.active = False
-		self.wbTlmQueue = deque(maxlen=10)
-		if self.serialPort.isOpen():
-			print 'WheelBot serial communication running on port : ' + portName
+    def __init__(self, portName, frequency=0.1):
+        self.serialPort = serial.Serial(
+            port=portName, baudrate=57600, rtscts=True, dsrdtr=True)
+        self.resetPacketCounters()
+    	self.cmdFooter = "SOE!"
+    	self.CommFrequency = frequency
+        if self.serialPort.isOpen():
+            logging.info('Serial communication running on port : ' + portName)
+            self.serialPort.flushInput()
+            self.serialPort.flushOutput()
 
-	def run(self):
-		self.active = True
-		self.readTelemetryThread.start()
+    def sendCommand(self, cmd):
+    	cmd_and_footer = cmd+self.cmdFooter
+        logging.debug(":".join("{:02x}".format(ord(c)) for c in cmd_and_footer))
+        self.serialPort.write(cmd_and_footer)
 
-	def stop(self):
-		self.active = False
+    def commandArduino(self, cmd):
+        if (isinstance(cmd, comm_packet_pb2.CommandPacket)):
+            # Send down the serialized command
+            try:
+                self.sendCommand(cmd.SerializeToString())
+            except EncodeError:
+            	logging.error("Failed to encode command packet. Are all required fields set?")
+            	raise IOError
 
-	def getTelemetry(self):
-		try:
-			return self.wbTlmQueue.popleft()
-		except IndexError:
-			print 'No telemetry data available. Is your WheelBot connection active?'
+            # Give the Arduino time to respond.
+            time.sleep(self.CommFrequency)
 
-	def readTelemetry(self):
-		while self.active:
-			bytes_rcvd = self.readRawBytes()
-			if bytes_rcvd:
-				self.unpackTelemetry(bytes_rcvd)
-			time.sleep(0.1)
+            # Unpack the received Arduino packet.
+            try:
+                response = self.readTelemetry()
+                self.NumReceivedPackets += 1
+                return response
+            except IOError:
+                self.NumFailedPackets += 1
+                return None
+        else:
+            raise TypeError
 
-	def sendCommand(self, cmd):
-		self.serialPort.write(cmd)
+    def readTelemetry(self):
+        bytes_rcvd = self.readRawBytes()
+        if bytes_rcvd:
+            return self.unpackTelemetry(bytes_rcvd)
+        else:
+            raise IOError
 
-	def commandWayPoint(self, way_point):
-		# Create a proto-buf WayPoint command based on the one
-		# passed in to this function.
-		waypoint_msg_cmd = wb_comm_if_pb2.WayPoint()
-		# Populate all required fields
-		waypoint_msg_cmd.Distance = way_point.Distance
-		waypoint_msg_cmd.Heading = way_point.Heading
-		# Send down the serialized command
-		self.sendCommand(waypoint_msg_cmd.SerializeToString())
+    def readRawBytes(self):
+        bytes_read = ''
+        while self.serialPort.inWaiting() > 0:
+            bytes_read += self.serialPort.read(1)
+        return bytes_read
 
-	def readRawBytes(self):
-		bytes_read = ''
-		while self.serialPort.inWaiting() > 0:
-			bytes_read += self.serialPort.read(1)
-		return bytes_read
+    def unpackTelemetry(self, raw_bytes):
+        wb_tlm = comm_packet_pb2.TelemetryPacket()
+        logging.debug("Bytes to be unpacked :")
+        logging.debug(":".join("{:02x}".format(ord(c)) for c in raw_bytes))
+        try:
+            wb_tlm.ParseFromString(raw_bytes)
+        except Exception:
+            raise IOError
+        return wb_tlm
 
-	def unpackTelemetry(self, raw_bytes):
-		wb_tlm = wb_comm_if_pb2.WheelBotTelemetry()
-		wb_tlm.ParseFromString(raw_bytes)
-		self.wbTlmQueue.appendleft(wb_tlm)
-
-
+    def resetPacketCounters(self):
+        self.NumFailedPackets = 0
+        self.NumReceivedPackets = 0

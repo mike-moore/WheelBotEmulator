@@ -1,4 +1,5 @@
 *.o
+*.nfs*
 *.pyc
 ttyclient
 ttydevice
