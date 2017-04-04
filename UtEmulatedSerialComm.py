@@ -123,7 +123,7 @@ class UtEmulatedSerialComm(unittest.TestCase):
             self.assertTrue(self.testArticle.NumFailedPackets >= 1)
 
 if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format='%(levelname)s:%(message)s')
+    logging.basicConfig(stream=sys.stderr, level=logging.INFO, format='%(levelname)s:%(message)s')
     wbEmulator.run()
     # add some wait time between tests to give the emulated serial port time to
     # be opened
