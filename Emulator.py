@@ -1,36 +1,65 @@
-import time, threading
+import logging, sys, threading, time
+from subprocess import Popen, PIPE, STDOUT
+
+# Used for re-directing Trick sim output to /dev/null
+try:
+    from subprocess import DEVNULL # py3k
+except ImportError:
+    import os
+    DEVNULL = open(os.devnull, 'wb')
+
 from SerialEmulator import SerialEmulator
 from CmdResponseDefinitions import *
 import comm_packet_pb2
-import logging
+from variable_server import VariableServer
+
 
 class Emulator(object):
 	def __init__(self):
 		self.serialEmulator = SerialEmulator()
-		self.listenThread = threading.Thread(target=self.listen) 
-		self.listenThread.daemon = True
-		self.runThread = False
+		self.simThread = threading.Thread(target=self.runSim) 
+		self.simThread.daemon = True
+		self.runSimThread = False
+		self.variableServer = None
 		self.ActiveWayPoint = comm_packet_pb2.WayPoint(Name="", Distance=0.0, Heading=0.0)
 		self.WayPointList = []
 		self.WbTlmPacket = None
 
 	def run(self):
-		self.runThread = True
-		self.listenThread.start()
+		self.runSimThread = True
+		self.simThread.start()
 
 	def stop(self):
-		self.runThread = False
+		self.runSimThread = False
+		self.variableServer.close()
 
-	def listen(self):
-		while self.runThread:
+	def runSim(self):
+		print "Launching WheelBot Sim ... "
+		self.launchSim("./trick_sim")
+		time.sleep(2.0)
+		print "Attempting to make variable server connection ... "
+		self.variableServer = VariableServer('localhost', 45442)
+		while self.runSimThread:
 			raw_cmd = self.serialEmulator.read()
 			if raw_cmd:
 				# Construct a new tlm packet to send back
 				self.WbTlmPacket = comm_packet_pb2.TelemetryPacket()
+				# Fill with data received from Trick sim
+				self.WbTlmPacket.MeasuredHeading = self.variableServer.get_value('veh.vehicle.heading', type_=float) 
+				self.WbTlmPacket.MeasuredDistance = self.variableServer.get_value('veh.vehicle.arrivalDistance', type_=float) 
+			    # Handle commands
 				rcvd_cmd = self.unpackCmdRcvd(raw_cmd)
 				self.handleCmd(rcvd_cmd)
 				self.sendWheelBotTlm()
-			time.sleep(0.02)
+			time.sleep(0.1)
+
+	def launchSim(self, s_main_dir):
+		try:
+			Popen(["./S_main_Linux_5.4_x86_64.exe", "RUN_emulator/input.py"], cwd=s_main_dir, stdin=PIPE, stdout=DEVNULL, stderr=STDOUT)
+		except OSError:
+			logging.error("The WheelBot Trick sim has not been built. Change into the trick_sim directory \
+                           and run the following command: \"make spotless; trick-CP\"")
+		return
 
 	def unpackCmdRcvd(self, cmd):
 		logging.debug("Bytes to be unpacked :")
@@ -57,6 +86,8 @@ class Emulator(object):
 
 	def rejectWayPointCmd(self):
 		logging.info("Rejecting commanded waypoint")
+		if self.ActiveWayPoint.Name != "":
+			logging.info("Busy targetting : " + self.ActiveWayPoint.Name)
 		wp_reject_msg = self.WbTlmPacket.RoverStatus.add()
 		wp_reject_msg.Id = WP_CMD_REJECT
 
@@ -74,8 +105,6 @@ class Emulator(object):
 		self.serialEmulator.write(self.packTelemetry())
 
 	def packTelemetry(self):
-		self.WbTlmPacket.MeasuredDistance = 2.5
-		self.WbTlmPacket.MeasuredHeading = 45.125
 		return self.WbTlmPacket.SerializeToString()
 
 # Used if you want to run the emulator as a main program.

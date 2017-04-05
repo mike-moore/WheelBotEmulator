@@ -34,7 +34,8 @@ if __name__ == '__main__':
     wbEmulator.run()
     # add some wait time between tests to give the emulated serial port time to
     # be opened
-    sleep(1.0)
+    sleep(5.0)
     # Run the unit-tests
     suite = unittest.TestLoader().loadTestsFromTestCase(UtCommandAndTracking)
     unittest.TextTestRunner(verbosity=2).run(suite)
+    wbEmulator.stop()

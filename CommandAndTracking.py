@@ -28,8 +28,8 @@ class CommandAndTracking(object):
 	def commandRoute(self):
 		if self.isConnected():
 			for way_point in self.WayPointList:
-				logging.info("Attempting to command WayPoint : " + way_point.Name)
 				self.reachWayPoint(way_point)
+				logging.info("Attempting to command WayPoint : " + way_point.Name)
 				time.sleep(5.0)
 
 	def getActiveWayPoint(self):
@@ -39,6 +39,8 @@ class CommandAndTracking(object):
 		response = self.SerialComm.commandArduino(cmd_packet)
 		if response:
 			logging.info("WheelBot's Active WayPoint is : " + response.ActiveWayPoint)
+			logging.info("WheelBot's Measured Heading is : " + str(response.MeasuredHeading))
+			logging.info("WheelBot's Measured Distance is : " + str(response.MeasuredDistance))
 			return response.ActiveWayPoint
 		else:
 			return "None"
