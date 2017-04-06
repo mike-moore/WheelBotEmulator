@@ -27,9 +27,14 @@ class CommandAndTracking(object):
 
 	def commandRoute(self):
 		if self.isConnected():
-			for way_point in self.WayPointList:
-				self.reachWayPoint(way_point)
-				logging.info("Attempting to command WayPoint : " + way_point.Name)
+			while True:
+				self.ActiveWayPointName = self.getActiveWayPoint()
+				if self.ActiveWayPointName == '':
+					if len(self.WayPointList) > 0:
+						way_point = self.WayPointList.pop(0)
+						self.commandWayPoint(way_point)
+					else:
+						return
 				time.sleep(5.0)
 
 	def getActiveWayPoint(self):
@@ -38,21 +43,17 @@ class CommandAndTracking(object):
 		request_active_waypoint.Id = WP_GET_ACTIVE
 		response = self.SerialComm.commandArduino(cmd_packet)
 		if response:
-			logging.info("WheelBot's Active WayPoint is : " + response.ActiveWayPoint)
-			logging.info("WheelBot's Measured Heading is : " + str(response.MeasuredHeading))
-			logging.info("WheelBot's Measured Distance is : " + str(response.MeasuredDistance))
 			return response.ActiveWayPoint
 		else:
 			return "None"
 
-	def reachWayPoint(self, way_point):
-		self.ActiveWayPointName = self.getActiveWayPoint()
-		if self.ActiveWayPointName != way_point.Name:
-			cmd_packet = comm_packet_pb2.CommandPacket()
-			cmd_packet.WayPointCmd.Heading = way_point.Heading
-			cmd_packet.WayPointCmd.Distance = way_point.Distance
-			cmd_packet.WayPointCmd.Name = way_point.Name
-			self.SerialComm.commandArduino(cmd_packet)
+	def commandWayPoint(self, way_point):
+		logging.info("Attempting to command WayPoint : " + way_point.Name)
+		cmd_packet = comm_packet_pb2.CommandPacket()
+		cmd_packet.WayPointCmd.Heading = way_point.Heading
+		cmd_packet.WayPointCmd.Distance = way_point.Distance
+		cmd_packet.WayPointCmd.Name = way_point.Name
+		self.SerialComm.commandArduino(cmd_packet)
 
 
 		

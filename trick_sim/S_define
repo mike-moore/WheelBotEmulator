@@ -16,7 +16,7 @@ class VehicleSimObject : public Trick::SimObject {
 
     VehicleSimObject() {
         ("default_data")     vehicle.default_data() ;
-        ("initialization")   vehicle.state_init() ;
+        ("default_data")   vehicle.state_init() ;
         (0.10, "scheduled")  vehicle.control();
         ("derivative")       vehicle.state_deriv() ;
         ("integration") trick_ret = vehicle.state_integ() ;

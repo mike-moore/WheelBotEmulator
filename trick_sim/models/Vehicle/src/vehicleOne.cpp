@@ -93,19 +93,10 @@ int VehicleOne::state_init() {
         new Navigator(heading, initLocation);
 
     vehicleController =
-        new VehicleController( &waypointQueue, *navigator, *driveController, arrivalDistance);
+        new VehicleController(*navigator, *driveController, arrivalDistance);
 
     return (0);
 }
-
-#include<iostream>
-void VehicleOne::add_waypoint(double x, double y) {
-    std::cout << "Adding way point: " << x << ", " << y << std::endl;
-    Point wayPoint(x,y);
-    waypointQueue.push_back(wayPoint);
-    vehicleController->setWayPointQueue(&waypointQueue);
-}
-
 
 void VehicleOne::control() {
 

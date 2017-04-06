@@ -10,7 +10,6 @@ PURPOSE: ()
 
 class VehicleOne {
     public:
-    std::vector<Point> waypointQueue;
     Navigator *navigator;
     MotorSpeedController* rightMotorController;
     MotorSpeedController* leftMotorController;
@@ -56,8 +55,6 @@ class VehicleOne {
     double vehicleZTorque;           /* N*m */
 
     double batteryVoltage;
-
-    void add_waypoint(double x, double y);
 
     int default_data();
     int state_init();

@@ -12,9 +12,10 @@ from CommandAndTracking import CommandAndTracking
 import comm_packet_pb2
 
 # Define a list of way-points for the purpose of testing
-test_route_1 = [comm_packet_pb2.WayPoint(Name="WayPoint A", Distance=0.707107, Heading=-45.0), #0.5, -0.5
-                comm_packet_pb2.WayPoint(Name="WayPoint B", Distance=1.58113, Heading=-18.43494), #1.5, -0.5
-                comm_packet_pb2.WayPoint(Name="WayPoint C", Distance=1.58113, Heading=-18.43494)] # 1.5, 0.5
+test_route_1 = [comm_packet_pb2.WayPoint(Name="WayPoint A", Distance=0.707107, Heading=-45.0),
+                comm_packet_pb2.WayPoint(Name="WayPoint B", Distance=0.707107, Heading=45.0),
+                comm_packet_pb2.WayPoint(Name="WayPoint C", Distance=0.707107, Heading=135.0),
+                comm_packet_pb2.WayPoint(Name="WayPoint D", Distance=0.707107, Heading=270.0)]
 
 # Use one global Emulator instance for all tests
 wbEmulator = Emulator()

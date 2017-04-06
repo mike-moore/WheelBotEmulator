@@ -41,6 +41,8 @@ trick_sim/RUN_test/send_hs
 trick_sim/RUN_emulator/send_hs
 trick_sim/RUN_test/log_*
 trick_sim/RUN_emulator/log_*
+trick_sim/RUN_test/*.trk
+trick_sim/RUN_emulator/*.trk
 *.trk
 trick_sim/RUN_test/*.csv
 trick_sim/RUN_emulator/*.csv

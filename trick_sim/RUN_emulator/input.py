@@ -29,10 +29,6 @@ veh.vehicle.arrivalDistance  = 0.1
 #==========================================
 waypoints_path = "Modified_data/cross.waypoints"
 fp = open(waypoints_path, "r")
-#veh.vehicle.add_waypoint(0.5, -0.5)
-# for line in fp:
-#     fields = line.split(",")
-#     veh.vehicle.add_waypoint( float(fields[0]), float(fields[1]))
 
 #==========================================
 # Start the display VarServer Client
@@ -54,4 +50,4 @@ else :
     print('EVDisplay needs to be built. Please \"cd\" into models/Graphics and type \"make\".')
     print('==================================================================================')
 
-trick.stop(100)
+trick.stop(100000)

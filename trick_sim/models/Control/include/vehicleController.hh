@@ -12,21 +12,22 @@
 
 class VehicleController {
     public:
-    VehicleController(std::vector<Point>* waypointQueue,
-                      Navigator& navigator,
+    VehicleController(Navigator& navigator,
                       DifferentialDriveController& driveController,
                       double arrival_distance);
 
     int getCurrentDestination(Point& currentDestination);
-    void setWayPointQueue( std::vector<Point>* waypointQueue );
+    void add_waypoint(double x, double y);
     void printDestination();
     void update();
+
+    int WayPointReached ;
 
     private:
     // Do not allow the default constructor to be used.
     VehicleController();
 
-    std::vector<Point>* waypointQueue;
+    std::vector<Point> waypointQueue;
     std::vector<Point>::iterator destination;
     Point departure;
     Navigator& navigator;

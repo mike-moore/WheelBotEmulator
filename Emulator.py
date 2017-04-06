@@ -25,6 +25,7 @@ class Emulator(object):
 		self.varServerSamplingPeriod = 0.1
 		self.SimHeading = 0.0
 		self.SimDistance = 0.0
+		self.WayPointReached = 0.0
 		self.ActiveWayPoint = comm_packet_pb2.WayPoint(Name="", Distance=0.0, Heading=0.0)
 		self.WayPointList = []
 		self.WbTlmPacket = comm_packet_pb2.TelemetryPacket(MeasuredHeading=0.0, MeasuredDistance=0.0)
@@ -57,9 +58,10 @@ class Emulator(object):
 			self.variableServer = VariableServer('localhost', 45442)
 			self.TrickSimMeasuredHeading = Variable('veh.vehicle.heading', type_=float)
 			self.TrickSimMeasuredDistance = Variable('veh.vehicle.arrivalDistance',  type_=float, units='ft')
-			self.variableServer.add_variables(self.TrickSimMeasuredHeading, self.TrickSimMeasuredDistance)
+			self.TrickSimWayPointReached = Variable('veh.vehicle.vehicleController[0].WayPointReached', type_=int)
+			self.variableServer.add_variables(self.TrickSimMeasuredHeading, self.TrickSimMeasuredDistance, self.TrickSimWayPointReached)
 			self.variableServer.set_period(self.varServerSamplingPeriod)
-			self.variableServer.register_callback(self.packSimData)
+			self.variableServer.register_callback(self.processSimData)
 		except:
 			logging.error("Failed to make variable server connection. Be sure to run the Trick sim first.")
 			self.stop()
@@ -102,7 +104,7 @@ class Emulator(object):
 		self.ActiveWayPoint = way_point
 		waypt_x =  self.ActiveWayPoint.Distance * math.cos(self.ActiveWayPoint.Heading)
 		waypt_y =  self.ActiveWayPoint.Distance * math.sin(self.ActiveWayPoint.Heading)
-		self.variableServer.send('veh.vehicle.add_waypoint({0}, {1})'.format(waypt_x, waypt_y))
+		self.variableServer.send('veh.vehicle.vehicleController[0].add_waypoint({0}, {1})'.format(waypt_x, waypt_y))
 
 	def handleRoverCmd(self, cmd):
 		if cmd.Id == WP_GET_ACTIVE:
@@ -111,15 +113,23 @@ class Emulator(object):
 	def sendWheelBotTlm(self):
 		self.serialEmulator.write(self.packTelemetry())
 
-	def packSimData(self):
+	def processSimData(self):
 		# Fill with data received from Trick sim
 		self.SimHeading = self.TrickSimMeasuredHeading.value
 		self.SimDistance = self.TrickSimMeasuredDistance.value
+		self.WayPointReached = self.TrickSimWayPointReached.value
+		# Check if we reached our way point yet. If so, clear the 
+		# active way point
+		if self.WayPointReached == 1:
+			logging.info("Waypoint reached")
+			self.ActiveWayPoint.Name = ''
+			self.WayPointReached = 0
 
 	def packTelemetry(self):
 		self.WbTlmPacket.MeasuredHeading = self.SimHeading
 		self.WbTlmPacket.MeasuredDistance = self.SimDistance
 		return self.WbTlmPacket.SerializeToString()
+
 
 # Used if you want to run the emulator as a main program.
 def main():
