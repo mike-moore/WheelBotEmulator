@@ -3,6 +3,7 @@ trick.real_time_enable()
 trick.exec_set_software_frame(0.1)
 trick.itimer_enable()
 
+execfile("Modified_data/realtime.py")
 execfile("Modified_data/vehicleState.dr")
 
 trick.TMM_reduced_checkpoint(0)
@@ -28,9 +29,10 @@ veh.vehicle.arrivalDistance  = 0.1
 #==========================================
 waypoints_path = "Modified_data/cross.waypoints"
 fp = open(waypoints_path, "r")
-for line in fp:
-    fields = line.split(",")
-    veh.vehicle.add_waypoint( float(fields[0]), float(fields[1]))
+#veh.vehicle.add_waypoint(0.5, -0.5)
+# for line in fp:
+#     fields = line.split(",")
+#     veh.vehicle.add_waypoint( float(fields[0]), float(fields[1]))
 
 #==========================================
 # Start the display VarServer Client

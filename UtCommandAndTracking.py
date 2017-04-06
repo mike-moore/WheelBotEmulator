@@ -12,9 +12,9 @@ from CommandAndTracking import CommandAndTracking
 import comm_packet_pb2
 
 # Define a list of way-points for the purpose of testing
-test_route_1 = [comm_packet_pb2.WayPoint(Name="WayPoint A", Distance=3.0, Heading=90.0),
-                comm_packet_pb2.WayPoint(Name="WayPoint B", Distance=1.0, Heading=0.0),
-                comm_packet_pb2.WayPoint(Name="WayPoint C", Distance=2.0, Heading=0.0)]
+test_route_1 = [comm_packet_pb2.WayPoint(Name="WayPoint A", Distance=0.707107, Heading=-45.0), #0.5, -0.5
+                comm_packet_pb2.WayPoint(Name="WayPoint B", Distance=1.58113, Heading=-18.43494), #1.5, -0.5
+                comm_packet_pb2.WayPoint(Name="WayPoint C", Distance=1.58113, Heading=-18.43494)] # 1.5, 0.5
 
 # Use one global Emulator instance for all tests
 wbEmulator = Emulator()
@@ -31,7 +31,13 @@ class UtCommandAndTracking(unittest.TestCase):
 
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stderr, level=logging.INFO, format='%(levelname)s:%(message)s')
-    wbEmulator.run()
+    try:
+        wbEmulator.run()
+    except IOError:
+        wbEmulator.stop()
+        logging.error("Failed to connect to sim. Is the Trick sim running?")
+        sys.exit()
+
     # add some wait time between tests to give the emulated serial port time to
     # be opened
     sleep(5.0)

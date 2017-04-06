@@ -1,4 +1,4 @@
-import logging, sys, threading, time
+import logging, sys, threading, time, math
 from subprocess import Popen, PIPE, STDOUT
 
 # Used for re-directing Trick sim output to /dev/null
@@ -11,7 +11,7 @@ except ImportError:
 from SerialEmulator import SerialEmulator
 from CmdResponseDefinitions import *
 import comm_packet_pb2
-from variable_server import VariableServer
+from variable_server import VariableServer, Variable
 
 
 class Emulator(object):
@@ -19,11 +19,15 @@ class Emulator(object):
 		self.serialEmulator = SerialEmulator()
 		self.simThread = threading.Thread(target=self.runSim) 
 		self.simThread.daemon = True
+		self.simUpdatePeriod = 0.1
 		self.runSimThread = False
 		self.variableServer = None
+		self.varServerSamplingPeriod = 0.1
+		self.SimHeading = 0.0
+		self.SimDistance = 0.0
 		self.ActiveWayPoint = comm_packet_pb2.WayPoint(Name="", Distance=0.0, Heading=0.0)
 		self.WayPointList = []
-		self.WbTlmPacket = None
+		self.WbTlmPacket = comm_packet_pb2.TelemetryPacket(MeasuredHeading=0.0, MeasuredDistance=0.0)
 
 	def run(self):
 		self.runSimThread = True
@@ -31,35 +35,35 @@ class Emulator(object):
 
 	def stop(self):
 		self.runSimThread = False
-		self.variableServer.close()
+		if self.variableServer:
+			self.variableServer.close()
 
 	def runSim(self):
-		print "Launching WheelBot Sim ... "
-		self.launchSim("./trick_sim")
-		time.sleep(2.0)
-		print "Attempting to make variable server connection ... "
-		self.variableServer = VariableServer('localhost', 45442)
+		self.setupVariableServer()
 		while self.runSimThread:
 			raw_cmd = self.serialEmulator.read()
 			if raw_cmd:
 				# Construct a new tlm packet to send back
 				self.WbTlmPacket = comm_packet_pb2.TelemetryPacket()
-				# Fill with data received from Trick sim
-				self.WbTlmPacket.MeasuredHeading = self.variableServer.get_value('veh.vehicle.heading', type_=float) 
-				self.WbTlmPacket.MeasuredDistance = self.variableServer.get_value('veh.vehicle.arrivalDistance', type_=float, units='ft') 
 			    # Handle commands
 				rcvd_cmd = self.unpackCmdRcvd(raw_cmd)
 				self.handleCmd(rcvd_cmd)
 				self.sendWheelBotTlm()
-			time.sleep(0.1)
+			time.sleep(self.simUpdatePeriod)
 
-	def launchSim(self, s_main_dir):
+	def setupVariableServer(self):
 		try:
-			Popen(["./S_main_Linux_5.4_x86_64.exe", "RUN_emulator/input.py"], cwd=s_main_dir, stdin=PIPE, stdout=DEVNULL, stderr=STDOUT)
-		except OSError:
-			logging.error("The WheelBot Trick sim has not been built. Change into the trick_sim directory \
-                           and run the following command: \"make spotless; trick-CP\"")
-		return
+			logging.info("Attempting to make variable server connection ... ")
+			self.variableServer = VariableServer('localhost', 45442)
+			self.TrickSimMeasuredHeading = Variable('veh.vehicle.heading', type_=float)
+			self.TrickSimMeasuredDistance = Variable('veh.vehicle.arrivalDistance',  type_=float, units='ft')
+			self.variableServer.add_variables(self.TrickSimMeasuredHeading, self.TrickSimMeasuredDistance)
+			self.variableServer.set_period(self.varServerSamplingPeriod)
+			self.variableServer.register_callback(self.packSimData)
+		except:
+			logging.error("Failed to make variable server connection. Be sure to run the Trick sim first.")
+			self.stop()
+			raise IOError
 
 	def unpackCmdRcvd(self, cmd):
 		logging.debug("Bytes to be unpacked :")
@@ -78,7 +82,7 @@ class Emulator(object):
 
 	def handleWayPointCmd(self, cmd):
 		# Reject the waypoint command unless we have an empty active way
-		# point (IE we're not currently navigating to a waypoint)
+		# point (we're not currently navigating to a waypoint)
 		if self.ActiveWayPoint.Name != "":
 			self.rejectWayPointCmd()
 		else:
@@ -96,6 +100,9 @@ class Emulator(object):
 		wp_accept_msg = self.WbTlmPacket.RoverStatus.add()
 		wp_accept_msg.Id = WP_CMD_ACCEPT
 		self.ActiveWayPoint = way_point
+		waypt_x =  self.ActiveWayPoint.Distance * math.cos(self.ActiveWayPoint.Heading)
+		waypt_y =  self.ActiveWayPoint.Distance * math.sin(self.ActiveWayPoint.Heading)
+		self.variableServer.send('veh.vehicle.add_waypoint({0}, {1})'.format(waypt_x, waypt_y))
 
 	def handleRoverCmd(self, cmd):
 		if cmd.Id == WP_GET_ACTIVE:
@@ -104,7 +111,14 @@ class Emulator(object):
 	def sendWheelBotTlm(self):
 		self.serialEmulator.write(self.packTelemetry())
 
+	def packSimData(self):
+		# Fill with data received from Trick sim
+		self.SimHeading = self.TrickSimMeasuredHeading.value
+		self.SimDistance = self.TrickSimMeasuredDistance.value
+
 	def packTelemetry(self):
+		self.WbTlmPacket.MeasuredHeading = self.SimHeading
+		self.WbTlmPacket.MeasuredDistance = self.SimDistance
 		return self.WbTlmPacket.SerializeToString()
 
 # Used if you want to run the emulator as a main program.
