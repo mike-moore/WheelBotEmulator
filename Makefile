@@ -1,16 +1,16 @@
-.PHONY: all update_interface clean
+.PHONY: all build_sim run_tests clean
 
-all: update_interface run_tests
+all: build_sim run_tests
 
-clean:
-	rm -f wb_comm_if_pb2.py
-	rm -f *.pyc
-
-update_interface: wb_comm_if.proto
-	protoc --python_out=. wb_comm_if.proto
-	@echo "WheelBot communication interface has been updated."
+build_sim:
+	@echo "Building WheelBot Trick sim."
+	cd trick_sim; make spotless; trick-CP
+	cd ../
 
 run_tests:
 	@echo "Running Command and Tracking System Unit-Tests"
+	./UtEmulatedSerialComm.py
 	./UtCommandAndTracking.py
 
+clean:
+	rm -f *.pyc

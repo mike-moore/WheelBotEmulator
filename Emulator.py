@@ -45,8 +45,8 @@ class Emulator(object):
 				# Construct a new tlm packet to send back
 				self.WbTlmPacket = comm_packet_pb2.TelemetryPacket()
 				# Fill with data received from Trick sim
-				self.WbTlmPacket.MeasuredHeading = self.variableServer.get_value('veh.vehicle.heading', type_=float) 
-				self.WbTlmPacket.MeasuredDistance = self.variableServer.get_value('veh.vehicle.arrivalDistance', type_=float) 
+				self.WbTlmPacket.MeasuredHeading = self.variableServer.get_value('veh.vehicle.heading', type_=float, units='d') 
+				self.WbTlmPacket.MeasuredDistance = self.variableServer.get_value('veh.vehicle.arrivalDistance', type_=float, units='ft') 
 			    # Handle commands
 				rcvd_cmd = self.unpackCmdRcvd(raw_cmd)
 				self.handleCmd(rcvd_cmd)
