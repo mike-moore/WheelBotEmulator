@@ -24,6 +24,9 @@ lib_Darwin_*
 *.dox
 *.pyc
 .DS_Store
+trick_sim/DP_Product/DP_rt_trickjobs.xml
+trick_sim/DP_Product/DP_rt_userjobs.xml
+trick_sim/makefile
 trick_sim/build
 trick_sim/trick
 trick_sim/S_default.dat
